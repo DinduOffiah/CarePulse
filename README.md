@@ -254,3 +254,40 @@ Example availability payload:
 1. `GET /api/v1/appointments/available-slots?doctorId=...&date=2026-10-05`
 2. `POST /api/v1/appointments` with chosen `startTime`
 3. Later: `PATCH /api/v1/appointments/{id}/status` to move through the workflow
+
+## Milestone 5 – Clinical Notes + Billing (Completed)
+
+### Clinical Notes (`/api/v1/notes`)
+
+SOAP-format consultation notes attached 1:1 to appointments.
+
+| Method | Endpoint                          | Roles                | Description                    |
+|--------|-----------------------------------|----------------------|--------------------------------|
+| POST   | /                                 | Admin, Doctor        | Create note                    |
+| GET    | /by-appointment/{appointmentId}   | Admin, Doctor, Receptionist | Get note by appointment |
+| PUT    | /{id}                             | Admin, Doctor        | Update note                    |
+
+Notes can only be created when the appointment is `CheckedIn`, `InProgress`, or `Completed`.
+
+### Billing (`/api/v1/billing`)
+
+| Method | Endpoint                    | Roles                | Description                          |
+|--------|-----------------------------|----------------------|--------------------------------------|
+| POST   | /invoices                   | Admin, Receptionist  | Generate invoice from appointment    |
+| GET    | /invoices/{id}              | Admin, Receptionist, Doctor | Get invoice                   |
+| GET    | /invoices                   | Admin, Receptionist  | List + filter by status / patient    |
+| POST   | /invoices/{id}/pay          | Admin, Receptionist  | Mark invoice as paid                 |
+
+- Invoice amount is taken from the doctor’s `ConsultationFee`
+- Optional tax rate (0–1)
+- Statuses: Pending → Paid (also supports Cancelled / Refunded checks)
+
+### End-to-end clinic flow now supported
+
+1. Register users (Doctor / Patient / Receptionist / Admin)
+2. Create Doctor + Patient profiles
+3. Set doctor availability
+4. Book appointment (double-booking safe)
+5. Move appointment through status machine
+6. Add SOAP consultation note
+7. Generate invoice → mark as paid
