@@ -25,6 +25,8 @@ public static class DependencyInjection
                 npgsql.EnableRetryOnFailure(3);
             }));
 
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+
         services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -39,17 +41,14 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        // Token service
         services.AddScoped<ITokenService, TokenService>();
 
-        // Redis
         var redisConnection = configuration.GetConnectionString("Redis") ?? "localhost:6379";
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConnection;
         });
 
-        // Hangfire
         services.AddHangfire(config => config
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()

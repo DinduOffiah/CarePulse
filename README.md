@@ -184,3 +184,41 @@ Roles are automatically seeded on application startup.
 - Soft-delete aware authentication
 - Role-based claims in JWT
 - FluentValidation on all auth requests
+
+## Milestone 3 – Patients, Doctors & Availability (Completed)
+
+### Patients Endpoints (`/api/v1/patients`)
+
+| Method | Endpoint       | Roles                     | Description                    |
+|--------|----------------|---------------------------|--------------------------------|
+| POST   | /              | Admin, Receptionist       | Create patient profile         |
+| GET    | /{id}          | Authenticated             | Get patient by ID              |
+| GET    | /              | Admin, Receptionist, Doctor | List + search + pagination  |
+| PUT    | /{id}          | Admin, Receptionist       | Update patient                 |
+| DELETE | /{id}          | Admin                     | Soft-delete patient            |
+
+### Doctors Endpoints (`/api/v1/doctors`)
+
+| Method | Endpoint              | Roles              | Description                          |
+|--------|-----------------------|--------------------|--------------------------------------|
+| POST   | /                     | Admin              | Create doctor profile                |
+| GET    | /{id}                 | Public             | Get doctor + availability            |
+| GET    | /                     | Public             | List + filter by specialty + search  |
+| PUT    | /{id}                 | Admin, Doctor      | Update doctor                        |
+| DELETE | /{id}                 | Admin              | Soft-delete doctor                   |
+| PUT    | /{id}/availability    | Admin, Doctor      | Replace weekly availability slots    |
+
+### Typical Flow
+
+1. Register a user with role `Doctor` or `Patient` via `/api/v1/auth/register`
+2. Create the corresponding profile (`/api/v1/doctors` or `/api/v1/patients`) using the `userId`
+3. For doctors, set weekly availability via `PUT /api/v1/doctors/{id}/availability`
+
+Example availability payload:
+```json
+[
+  { "dayOfWeek": "Monday", "startTime": "09:00:00", "endTime": "12:00:00", "isActive": true },
+  { "dayOfWeek": "Monday", "startTime": "14:00:00", "endTime": "17:00:00", "isActive": true },
+  { "dayOfWeek": "Wednesday", "startTime": "09:00:00", "endTime": "13:00:00", "isActive": true }
+]
+```

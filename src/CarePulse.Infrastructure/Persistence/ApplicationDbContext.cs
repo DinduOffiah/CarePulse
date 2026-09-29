@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarePulse.Infrastructure.Persistence;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, CarePulse.Application.Common.Interfaces.IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
