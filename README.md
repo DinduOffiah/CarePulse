@@ -37,8 +37,10 @@ Enterprise-grade backend API that digitizes multi-doctor private health clinic o
 cd docker
 docker compose up -d --build
 
-Resource,URL
-API,http://localhost:8080
-Swagger,http://localhost:8080/swagger
-Hangfire Dashboard,http://localhost:8080/hangfire
-Health,http://localhost:8080/health
+
+| Resource            | URL                            |
+|---------------------|--------------------------------|
+| API                 | http://localhost:8080          |
+| Swagger             | http://localhost:8080/swagger  |
+| Hangfire Dashboard  | http://localhost:8080/hangfire |
+| Health              | http://localhost:8080/health   |
