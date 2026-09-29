@@ -222,3 +222,35 @@ Example availability payload:
   { "dayOfWeek": "Wednesday", "startTime": "09:00:00", "endTime": "13:00:00", "isActive": true }
 ]
 ```
+
+## Milestone 4 – Appointments (Completed)
+
+### Endpoints (`/api/v1/appointments`)
+
+| Method | Endpoint                  | Roles                          | Description                              |
+|--------|---------------------------|--------------------------------|------------------------------------------|
+| POST   | /                         | Admin, Receptionist, Patient   | Book appointment (double-booking safe)   |
+| GET    | /{id}                     | Authenticated                  | Get appointment details                  |
+| GET    | /                         | Admin, Receptionist, Doctor    | List + filter (patient/doctor/status/date)|
+| GET    | /available-slots          | Public                         | Get free slots for a doctor on a date    |
+| PUT    | /{id}/reschedule          | Admin, Receptionist, Patient   | Reschedule                               |
+| POST   | /{id}/cancel              | Admin, Receptionist, Patient, Doctor | Cancel                          |
+| PATCH  | /{id}/status              | Admin, Receptionist, Doctor    | Advance status (status machine)          |
+
+### Key Features
+
+- **Double-booking protection**: overlap check + optimistic concurrency
+- **Availability-aware**: only books inside doctor’s weekly schedule
+- **Status machine** (enforced transitions):
+  - Scheduled → Confirmed / Cancelled / NoShow
+  - Confirmed → CheckedIn / Cancelled / NoShow
+  - CheckedIn → InProgress / NoShow
+  - InProgress → Completed
+- Available slots generator respects duration + existing bookings
+- Soft-delete aware, full audit columns
+
+### Typical Booking Flow
+
+1. `GET /api/v1/appointments/available-slots?doctorId=...&date=2026-10-05`
+2. `POST /api/v1/appointments` with chosen `startTime`
+3. Later: `PATCH /api/v1/appointments/{id}/status` to move through the workflow
