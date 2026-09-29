@@ -2,6 +2,7 @@ using System.Text;
 using CarePulse.Api.Middleware;
 using CarePulse.Application;
 using CarePulse.Infrastructure;
+using CarePulse.Infrastructure.Identity;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -100,6 +101,19 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Seed roles on startup
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        await RoleSeeder.SeedRolesAsync(scope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Role seeding failed (database may not be ready yet). Roles will be seeded on next successful start.");
+    }
+}
 
 // Middleware pipeline
 app.UseMiddleware<ExceptionHandlingMiddleware>();

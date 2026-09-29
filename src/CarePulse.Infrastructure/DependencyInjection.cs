@@ -1,5 +1,7 @@
+using CarePulse.Application.Common.Interfaces;
 using CarePulse.Domain.Entities;
 using CarePulse.Infrastructure.Persistence;
+using CarePulse.Infrastructure.Services;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Identity;
@@ -36,6 +38,9 @@ public static class DependencyInjection
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+        // Token service
+        services.AddScoped<ITokenService, TokenService>();
 
         // Redis
         var redisConnection = configuration.GetConnectionString("Redis") ?? "localhost:6379";

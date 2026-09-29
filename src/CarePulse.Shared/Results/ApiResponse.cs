@@ -6,6 +6,7 @@ public class ApiResponse<T>
     public string Message { get; set; } = string.Empty;
     public T? Data { get; set; }
     public object? Meta { get; set; }
+    public List<string>? Errors { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public string RequestId { get; set; } = string.Empty;
 
@@ -24,6 +25,15 @@ public class ApiResponse<T>
         {
             Success = false,
             Message = message,
+            RequestId = requestId ?? string.Empty
+        };
+
+    public static ApiResponse<T> Fail(string message, List<string> errors, string? requestId = null)
+        => new()
+        {
+            Success = false,
+            Message = message,
+            Errors = errors,
             RequestId = requestId ?? string.Empty
         };
 }

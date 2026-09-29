@@ -116,3 +116,71 @@ src/
 ## License
 
 MIT – built for portfolio demonstration.
+
+## Milestone 2 – Identity & Access (Completed)
+
+### Endpoints
+
+| Method | Endpoint              | Auth     | Description                          |
+|--------|-----------------------|----------|--------------------------------------|
+| POST   | /api/v1/auth/register | Public   | Register new user with role          |
+| POST   | /api/v1/auth/login    | Public   | Login and receive tokens             |
+| POST   | /api/v1/auth/refresh  | Public   | Refresh access token                 |
+| POST   | /api/v1/auth/logout   | Bearer   | Invalidate refresh token             |
+| GET    | /api/v1/auth/me       | Bearer   | Get current authenticated user       |
+
+### Roles
+
+- Admin
+- Doctor
+- Receptionist
+- Patient
+
+Roles are automatically seeded on application startup.
+
+### Example Register Request
+
+```json
+{
+  "email": "doctor@clinic.com",
+  "password": "SecureP@ssw0rd1",
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "role": "Doctor",
+  "phoneNumber": "+1234567890"
+}
+```
+
+### Example Login Response
+
+```json
+{
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+    "refreshToken": "base64string...",
+    "accessTokenExpiration": "2026-09-29T15:30:00Z",
+    "refreshTokenExpiration": "2026-10-06T15:15:00Z",
+    "user": {
+      "id": "guid",
+      "email": "doctor@clinic.com",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "fullName": "Jane Smith",
+      "roles": ["Doctor"]
+    }
+  },
+  "timestamp": "...",
+  "requestId": "..."
+}
+```
+
+### Security Features Implemented
+
+- JWT access tokens (15 min default) + rotating refresh tokens (7 days)
+- Password requirements enforced (upper, lower, digit, special, min 8)
+- Account lockout after 5 failed attempts
+- Soft-delete aware authentication
+- Role-based claims in JWT
+- FluentValidation on all auth requests
