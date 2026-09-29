@@ -1,66 +1,75 @@
-# CarePulse - Digital Health Clinic API
+# CarePulse – Digital Health Clinic API
 
-Enterprise-grade backend API that digitizes multi-doctor private health clinic operations, including appointment scheduling, patient records, clinical documentation, and billing workflows.
+Enterprise-grade backend API for digitizing multi-doctor private clinic operations, including scheduling, patient records, clinical notes, and billing.
 
-**Tech Stack:** ASP.NET Core 9 · C# · PostgreSQL · Entity Framework Core · Redis · Hangfire · JWT Authentication · ASP.NET Identity · Clean Architecture · CQRS (MediatR) · FluentValidation · Serilog · Swagger
+**Tech Stack:** ASP.NET Core 9 · C# · PostgreSQL · EF Core · Redis · Hangfire · JWT + Identity · Clean Architecture · CQRS (MediatR) · FluentValidation · Serilog · Swagger
 
 ---
 
 ## Features
 
-- JWT Authentication with Refresh Tokens
-- Multi-role Access Control (Admin, Doctor, Receptionist, Patient)
-- Patient & Doctor Management
-- Doctor Availability Scheduling
-- Appointment Booking with Double-Booking Protection
-- Appointment Status Workflow
-- SOAP Clinical Notes
-- Billing & Invoice Management
-- Background Processing with Hangfire
-- Soft Deletes & Audit Tracking
-- Structured Logging & Health Checks
-- Global Exception Handling
-- Standardized API Responses
-- Docker Support
+* Multi-role authentication: Admin, Doctor, Receptionist, Patient
+* JWT authentication with rotating refresh tokens
+* Patient and Doctor management
+* Doctor availability scheduling
+* Appointment booking with double-booking protection
+* Optimistic concurrency for appointments
+* Appointment status workflow
+* SOAP-format clinical notes
+* Billing and invoice management
+* Background jobs with Hangfire
+* Soft deletes and audit columns
+* Structured logging
+* Health checks
+* Global exception handling
+* Consistent API response envelope
+* Role-based access control (RBAC)
+* Docker-ready
 
 ---
 
 ## Prerequisites
 
-- .NET 9 SDK
-- Docker & Docker Compose (Recommended)
-- PostgreSQL 16
-- Redis 7
+* [.NET 9 SDK](https://dotnet.microsoft.com/)
+* [Docker](https://www.docker.com/) & Docker Compose *(recommended)*
+* PostgreSQL 16
+* Redis 7
+
+> PostgreSQL and Redis can be run automatically using Docker Compose.
 
 ---
 
-## Quick Start (Docker)
+## Quick Start with Docker
+
+From the project root:
 
 ```bash
 cd docker
 docker compose up -d --build
 ```
 
-### Available Resources
+Once the containers are running:
 
-| Resource | URL |
-|-----------|-----|
-| API | http://localhost:8080 |
-| Swagger | http://localhost:8080/swagger |
+| Resource           | URL                            |
+| ------------------ | ------------------------------ |
+| API                | http://localhost:8080          |
+| Swagger            | http://localhost:8080/swagger  |
 | Hangfire Dashboard | http://localhost:8080/hangfire |
-| Health Check | http://localhost:8080/health |
+| Health Check       | http://localhost:8080/health   |
 
 ---
 
 ## Local Development
 
-### Start Infrastructure
+### 1. Start Infrastructure
+
+Start PostgreSQL and Redis:
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d postgres redis
 ```
 
-### Apply Database Migrations
+### 2. Apply EF Core Migrations
 
 ```bash
 dotnet ef migrations add InitialCreate \
@@ -72,13 +81,13 @@ dotnet ef database update \
   --startup-project src/CarePulse.Api
 ```
 
-### Run the API
+### 3. Run the API
 
 ```bash
 dotnet run --project src/CarePulse.Api
 ```
 
-> When running locally, verify the API URL in `launchSettings.json`.
+> When running with `dotnet run`, check the console output for the exact URL. The port comes from `launchSettings.json` and may not be `8080`.
 
 ---
 
@@ -86,30 +95,45 @@ dotnet run --project src/CarePulse.Api
 
 ```text
 src/
-├── CarePulse.Api              # Presentation Layer
-├── CarePulse.Application      # CQRS, DTOs, Validators, Use Cases
-├── CarePulse.Domain           # Entities, Enums, Business Rules
-├── CarePulse.Infrastructure   # EF Core, Identity, Redis, Hangfire
-└── CarePulse.Shared           # Shared Utilities & Result Types
+├── CarePulse.Api
+│   └── Controllers, Middleware, Program.cs
+│
+├── CarePulse.Application
+│   └── Use cases, MediatR handlers, Validators, DTOs
+│
+├── CarePulse.Domain
+│   └── Entities, Enums, Business rules
+│
+├── CarePulse.Infrastructure
+│   └── EF Core, Identity, Redis, Hangfire
+│
+└── CarePulse.Shared
+    └── Shared result types and utilities
 ```
 
 ---
 
 ## Architecture
 
-- Clean Architecture / Onion Architecture
-- CQRS with MediatR
-- SOLID Design Principles
-- Optimistic Concurrency Control
-- Soft Deletes with Audit Trail
-- Role-Based Access Control (RBAC)
-- Structured Logging with Correlation IDs
-- Global Exception Handling
-- Consistent JSON Response Envelope
+CarePulse follows **Clean Architecture / Onion Architecture** principles.
+
+Key architectural practices include:
+
+* SOLID
+* DRY
+* KISS
+* YAGNI
+* CQRS with MediatR
+* Soft deletes
+* Audit trails
+* Optimistic concurrency
+* Global exception handling
+* Structured logging with correlation IDs
+* Role-based access control (RBAC)
 
 ---
 
-## Standard API Response
+## Standard API Response Format
 
 ### Success
 
@@ -140,24 +164,34 @@ src/
 
 ---
 
+# API Overview
+
+Base URL:
+
+```text
+/api/v1
+```
+
 ## Authentication
 
 **Base Route:** `/api/v1/auth`
 
-| Method | Endpoint | Access | Description |
-|----------|----------|----------|-------------|
-| POST | `/register` | Public | Register a new user |
-| POST | `/login` | Public | Login and receive tokens |
-| POST | `/refresh` | Public | Refresh access token |
-| POST | `/logout` | Authenticated | Invalidate refresh token |
-| GET | `/me` | Authenticated | Get current user |
+| Method | Endpoint    | Auth   | Description                    |
+| ------ | ----------- | ------ | ------------------------------ |
+| POST   | `/register` | Public | Register a new user            |
+| POST   | `/login`    | Public | Login and receive tokens       |
+| POST   | `/refresh`  | Public | Refresh access token           |
+| POST   | `/logout`   | Bearer | Invalidate refresh token       |
+| GET    | `/me`       | Bearer | Get current authenticated user |
 
 ### Roles
 
-- Admin
-- Doctor
-- Receptionist
-- Patient
+* Admin
+* Doctor
+* Receptionist
+* Patient
+
+Roles are seeded automatically on startup.
 
 ### Registration Example
 
@@ -172,43 +206,45 @@ src/
 }
 ```
 
-### Security Features
+### Security
 
-- 15-Minute JWT Access Tokens
-- 7-Day Rotating Refresh Tokens
-- Strong Password Policy
-- Account Lockout After 5 Failed Attempts
-- Role Claims in JWT
-- Soft Delete Aware Authentication
+* JWT access tokens: 15 minutes
+* Rotating refresh tokens: 7 days
+* Strong password policy
+* Account lockout after 5 failed attempts
+* Soft-delete-aware authentication
+* Role claims included in JWT
 
 ---
 
-## Patient Management
+# Patients
 
 **Base Route:** `/api/v1/patients`
 
-| Method | Endpoint | Roles |
-|----------|----------|---------|
-| POST | `/` | Admin, Receptionist |
-| GET | `/{id}` | Authenticated |
-| GET | `/` | Admin, Receptionist, Doctor |
-| PUT | `/{id}` | Admin, Receptionist |
-| DELETE | `/{id}` | Admin |
+| Method | Endpoint | Roles                       | Description                        |
+| ------ | -------- | --------------------------- | ---------------------------------- |
+| POST   | `/`      | Admin, Receptionist         | Create patient profile             |
+| GET    | `/{id}`  | Authenticated               | Get patient by ID                  |
+| GET    | `/`      | Admin, Receptionist, Doctor | List, search and paginate patients |
+| PUT    | `/{id}`  | Admin, Receptionist         | Update patient                     |
+| DELETE | `/{id}`  | Admin                       | Soft-delete patient                |
 
 ---
 
-## Doctor Management
+# Doctors
 
 **Base Route:** `/api/v1/doctors`
 
-| Method | Endpoint | Roles |
-|----------|----------|---------|
-| POST | `/` | Admin |
-| GET | `/{id}` | Public |
-| GET | `/` | Public |
-| PUT | `/{id}` | Admin, Doctor |
-| DELETE | `/{id}` | Admin |
-| PUT | `/{id}/availability` | Admin, Doctor |
+| Method | Endpoint             | Roles         | Description                 |
+| ------ | -------------------- | ------------- | --------------------------- |
+| POST   | `/`                  | Admin         | Create doctor profile       |
+| GET    | `/{id}`              | Public        | Get doctor and availability |
+| GET    | `/`                  | Public        | List/filter doctors         |
+| PUT    | `/{id}`              | Admin, Doctor | Update doctor               |
+| DELETE | `/{id}`              | Admin         | Soft-delete doctor          |
+| PUT    | `/{id}/availability` | Admin, Doctor | Replace weekly availability |
+
+Doctors can be filtered by specialty and searched by name.
 
 ### Availability Example
 
@@ -225,88 +261,180 @@ src/
     "startTime": "14:00:00",
     "endTime": "17:00:00",
     "isActive": true
+  },
+  {
+    "dayOfWeek": "Wednesday",
+    "startTime": "09:00:00",
+    "endTime": "13:00:00",
+    "isActive": true
   }
 ]
 ```
 
 ---
 
-## Appointment Management
+# Appointments
 
 **Base Route:** `/api/v1/appointments`
 
-| Method | Endpoint | Roles |
-|----------|----------|---------|
-| POST | `/` | Admin, Receptionist, Patient |
-| GET | `/{id}` | Authenticated |
-| GET | `/` | Admin, Receptionist, Doctor |
-| GET | `/available-slots` | Public |
-| PUT | `/{id}/reschedule` | Admin, Receptionist, Patient |
-| POST | `/{id}/cancel` | Admin, Receptionist, Patient, Doctor |
-| PATCH | `/{id}/status` | Admin, Receptionist, Doctor |
+| Method | Endpoint           | Roles                                | Description                  |
+| ------ | ------------------ | ------------------------------------ | ---------------------------- |
+| POST   | `/`                | Admin, Receptionist, Patient         | Book appointment             |
+| GET    | `/{id}`            | Authenticated                        | Get appointment details      |
+| GET    | `/`                | Admin, Receptionist, Doctor          | List and filter appointments |
+| GET    | `/available-slots` | Public                               | Get available doctor slots   |
+| PUT    | `/{id}/reschedule` | Admin, Receptionist, Patient         | Reschedule appointment       |
+| POST   | `/{id}/cancel`     | Admin, Receptionist, Patient, Doctor | Cancel appointment           |
+| PATCH  | `/{id}/status`     | Admin, Receptionist, Doctor          | Advance appointment status   |
 
-### Appointment Status Workflow
+### Appointment Status Machine
 
 ```text
 Scheduled
- ├─→ Confirmed
- │    ├─→ CheckedIn
- │    │    └─→ InProgress
- │    │         └─→ Completed
- │    └─→ Cancelled
- ├─→ Cancelled
- └─→ NoShow
+   ├── Confirmed
+   ├── Cancelled
+   └── NoShow
+
+Confirmed
+   ├── CheckedIn
+   ├── Cancelled
+   └── NoShow
+
+CheckedIn
+   ├── InProgress
+   └── NoShow
+
+InProgress
+   └── Completed
 ```
 
 ### Booking Flow
 
-```http
-GET /api/v1/appointments/available-slots?doctorId={id}&date=2026-10-05
-
-POST /api/v1/appointments
-
-PATCH /api/v1/appointments/{id}/status
+```text
+GET /available-slots?doctorId=...&date=2026-10-05
+        ↓
+POST / with selected startTime
+        ↓
+PATCH /{id}/status
+        ↓
+Move appointment through the workflow
 ```
+
+Appointments include protection against double booking and optimistic concurrency conflicts.
 
 ---
 
-## Clinical Notes
+# Clinical Notes
 
 **Base Route:** `/api/v1/notes`
 
-SOAP-format consultation notes linked to appointments.
+Clinical notes use the **SOAP** format and are attached one-to-one with appointments.
 
-| Method | Endpoint | Roles |
-|----------|----------|---------|
-| POST | `/` | Admin, Doctor |
-| GET | `/by-appointment/{appointmentId}` | Admin, Doctor, Receptionist |
-| PUT | `/{id}` | Admin, Doctor |
+| Method | Endpoint                          | Roles                       | Description             |
+| ------ | --------------------------------- | --------------------------- | ----------------------- |
+| POST   | `/`                               | Admin, Doctor               | Create clinical note    |
+| GET    | `/by-appointment/{appointmentId}` | Admin, Doctor, Receptionist | Get note by appointment |
+| PUT    | `/{id}`                           | Admin, Doctor               | Update clinical note    |
 
-> Notes can only be created when an appointment is in **CheckedIn**, **InProgress**, or **Completed** status.
+Clinical notes can only be created when the appointment is:
+
+* `CheckedIn`
+* `InProgress`
+* `Completed`
 
 ---
 
-## Billing
+# Billing
 
 **Base Route:** `/api/v1/billing`
 
-| Method | Endpoint | Roles |
-|----------|----------|---------|
-| POST | `/invoices` | Admin, Receptionist |
-| GET | `/invoices/{id}` | Admin, Receptionist, Doctor |
-| GET | `/invoices` | Admin, Receptionist |
-| POST | `/invoices/{id}/pay` | Admin, Receptionist |
+| Method | Endpoint             | Roles                       | Description                       |
+| ------ | -------------------- | --------------------------- | --------------------------------- |
+| POST   | `/invoices`          | Admin, Receptionist         | Generate invoice from appointment |
+| GET    | `/invoices/{id}`     | Admin, Receptionist, Doctor | Get invoice                       |
+| GET    | `/invoices`          | Admin, Receptionist         | List and filter invoices          |
+| POST   | `/invoices/{id}/pay` | Admin, Receptionist         | Mark invoice as paid              |
 
-### Invoice Rules
+### Billing Rules
 
-- Amount is derived from the doctor's consultation fee.
-- Optional tax rate (`0.0 - 1.0`).
-- Status flow:
+* Invoice amount comes from the doctor's `ConsultationFee`
+* Optional tax rate: `0–1`
+* Invoice statuses:
+
+  * `Pending`
+  * `Paid`
+
+---
+
+# Typical End-to-End Flow
 
 ```text
-Pending → Paid
+1. Register users
+   ├── Doctor
+   ├── Patient
+   ├── Receptionist
+   └── Admin
+
+2. Create Doctor and Patient profiles
+
+3. Set Doctor availability
+
+4. Book appointment
+   └── Double-booking protection
+
+5. Move appointment through status workflow
+
+6. Add SOAP consultation note
+
+7. Generate invoice
+
+8. Mark invoice as paid
 ```
 
 ---
 
-## Typical End-to-
+## Infrastructure
+
+CarePulse uses the following infrastructure components:
+
+| Component             | Purpose                        |
+| --------------------- | ------------------------------ |
+| PostgreSQL            | Primary relational database    |
+| Redis                 | Caching and distributed data   |
+| Hangfire              | Background job processing      |
+| ASP.NET Core Identity | User and role management       |
+| JWT                   | API authentication             |
+| Serilog               | Structured application logging |
+| Swagger               | API documentation              |
+
+---
+
+## Development Principles
+
+The project is designed around maintainability, separation of concerns, and production-ready backend practices.
+
+```text
+Clean Architecture
+        +
+CQRS / MediatR
+        +
+Domain-driven business rules
+        +
+Role-based security
+        +
+Validation
+        +
+Structured logging
+        +
+Global error handling
+        +
+Optimistic concurrency
+        =
+Maintainable Clinic API
+```
+
+---
+
+## License
+
+This project is currently intended for development and demonstration purposes.
